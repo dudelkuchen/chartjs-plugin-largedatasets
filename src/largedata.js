@@ -1,14 +1,3 @@
-'use strict';
-
-import Chart from 'chart.js';
-
-function getCanvasSize(chart) {
-    return  {
-        width: chart.canvas.parentNode.style.width,
-        height: chart.canvas.parentNode.style.height,
-    };
-}
-
 class AxisInfo {
     constructor(axis) {
         this.axis = axis;
@@ -30,16 +19,17 @@ class AxisInfo {
         return this.axis.max;
     }
 
-    getPointPercentage(value) {
-        return (value - this.axis.min) / (this.axis.max - this.axis.min);
+    getPointPercentage(value, min, max) {
+        var ratio = (value - min) / (max - min);
+        return ratio;
     }
 
-    getPixelPositionWidth(value) {
-        return Math.floor(this.getPointPercentage(value) * this.axis.width);
+    getPixelPositionWidth(value, min, max) {
+        return Math.floor(this.getPointPercentage(value, min, max) * 1428);
     }
 
-    getPixelPositionHeight(value) {
-        return Math.floor(this.getPointPercentage(value) * this.axis.height);
+    getPixelPositionHeight(value, min, max) {
+        return Math.floor(this.getPointPercentage(value, min, max) * 714);
     }
 }
 
@@ -47,17 +37,33 @@ var largeDatasetPlugin = {
     id: 'largeDatasets',
 
     beforeUpdate: function(chart) {
+        if (!chart.scales["x-axis-0"])
+            return true;
         var xAxisInfo = new AxisInfo(chart.scales["x-axis-0"]);
-        var yAxisInfo = new AxisInfo(chart.scales["x-axis-1"]);
+        var yAxisInfo = new AxisInfo(chart.scales["y-axis-0"]);
         chart.data.datasets.forEach(function(dataset) {
             var dictionary = {};
-            dataset.data.forEach(function(data) {
-                var x = xAxisInfo.getPixelPositionWidth(data.x),
-                var y = xAxisInfo.getPixelPositionHeight(data.y)
-                dictionary[x][y] = data;
-            });
-        })
+            var maxY = Math.max.apply(Math, dataset.data.map(function(o) { return o.y; }));
+            var maxX = Math.max.apply(Math, dataset.data.map(function(o) { return o.x; }));
+            var minY = Math.min.apply(Math, dataset.data.map(function(o) { return o.y; }));
+            var minX = Math.min.apply(Math, dataset.data.map(function(o) { return o.x; }));
+            for (let i = 0; i < dataset.data.length; i++) {
+                var x = xAxisInfo.getPixelPositionWidth(dataset.data[i].x, minX, maxX);
+                var y = yAxisInfo.getPixelPositionHeight(dataset.data[i].y, minX, maxY);
+                if (!dictionary.hasOwnProperty(y))
+                    dictionary[y] = {};
+                dictionary[y][x] = dataset.data[i];
+            }
+            var data = [];
+            for (var yValue in dictionary) {
+                if (Object.prototype.hasOwnProperty.call(dictionary, yValue)) {
+                    for (var xValue in dictionary[yValue])
+                        data.push(dictionary[yValue][xValue])
+                }
+            }
+            dataset.data = data;
+        });
     }
 }
 
-Chart.plugins.register(largeDatasetsPlugin);
+Chart.plugins.register(largeDatasetPlugin);
