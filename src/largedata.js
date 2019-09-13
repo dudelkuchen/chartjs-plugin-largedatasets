@@ -1,35 +1,62 @@
-class AxisInfo {
-    constructor(axis) {
-        this.axis = axis;
+class DataGrouping {
+    constructor(area, pixelSize) {
+        this.area = area;
+        this.pixelSize = pixelSize;
     }
 
-    get width() {
-        return this.axis.right - this.axis.left;
-    }
-
-    get height() {
-        return this.axis.bottom - this.axis.top;
-    }
-
-    get minValue() {
-        return this.axis.min;
-    }
-
-    get maxValue() {
-        return this.axis.max;
+    groupData(data) {
+        var dictionary = {};
+        var minMaxX = this.getMinMaxXFromData(data);
+        var minMaxY = this.getMinMaxYFromData(data);
+        for (let i = 0; i < data.length; i++) {
+            var x = this.getPixelPositionWidth(data[i].x, minMaxX.min, minMaxX.max);
+            var y = this.getPixelPositionHeight(data[i].y, minMaxY.min, minMaxY.max);
+            if (!dictionary.hasOwnProperty(x))
+                dictionary[x] = {};
+            dictionary[x][y] = data[i];
+        }
+        var groupedData = [];
+        for (var xValue in dictionary) {
+            if (Object.prototype.hasOwnProperty.call(dictionary, xValue)) {
+                for (var yValue in dictionary[xValue])
+                groupedData.push(dictionary[xValue][yValue])
+            }
+        }
+        return groupedData;
     }
 
     getPointPercentage(value, min, max) {
-        var ratio = (value - min) / (max - min);
-        return ratio;
+        return (value - min) / (max - min);
     }
 
     getPixelPositionWidth(value, min, max) {
-        return Math.floor(this.getPointPercentage(value, min, max) * 1428);
+        return Math.floor(this.getPointPercentage(value, min, max) * this.area.width);
     }
 
     getPixelPositionHeight(value, min, max) {
-        return Math.floor(this.getPointPercentage(value, min, max) * 714);
+        return Math.floor(this.getPointPercentage(value, min, max) * this.area.height);
+    }
+
+    getMinMaxXFromData(data) {
+        var minMax = {min: data[0].x, max: data[0].x };
+        for (let i = 1; i < data.length; i++) {
+            if (minMax.min > data[i].x)
+                minMax.min = data[i].x;
+            else if (minMax.max < data[i].x)
+                minMax.max = data[i].x;
+        }
+        return minMax;
+    }
+    
+    getMinMaxYFromData(data) {
+        var minMax = {min: data[0].y, max: data[0].y }
+        for (let i = 1; i < data.length; i++) {
+            if (minMax.min > data[i].y)
+                minMax.min = data[i].y;
+            else if (minMax.max < data[i].y)
+                minMax.max = data[i].y;
+        }
+        return minMax;
     }
 }
 
@@ -37,31 +64,12 @@ var largeDatasetPlugin = {
     id: 'largeDatasets',
 
     beforeUpdate: function(chart) {
-        if (!chart.scales["x-axis-0"])
-            return true;
-        var xAxisInfo = new AxisInfo(chart.scales["x-axis-0"]);
-        var yAxisInfo = new AxisInfo(chart.scales["y-axis-0"]);
         chart.data.datasets.forEach(function(dataset) {
-            var dictionary = {};
-            var maxY = Math.max.apply(Math, dataset.data.map(function(o) { return o.y; }));
-            var maxX = Math.max.apply(Math, dataset.data.map(function(o) { return o.x; }));
-            var minY = Math.min.apply(Math, dataset.data.map(function(o) { return o.y; }));
-            var minX = Math.min.apply(Math, dataset.data.map(function(o) { return o.x; }));
-            for (let i = 0; i < dataset.data.length; i++) {
-                var x = xAxisInfo.getPixelPositionWidth(dataset.data[i].x, minX, maxX);
-                var y = yAxisInfo.getPixelPositionHeight(dataset.data[i].y, minX, maxY);
-                if (!dictionary.hasOwnProperty(y))
-                    dictionary[y] = {};
-                dictionary[y][x] = dataset.data[i];
-            }
-            var data = [];
-            for (var yValue in dictionary) {
-                if (Object.prototype.hasOwnProperty.call(dictionary, yValue)) {
-                    for (var xValue in dictionary[yValue])
-                        data.push(dictionary[yValue][xValue])
-                }
-            }
-            dataset.data = data;
+            if (dataset.data.length == 0)
+                return;
+            var dataGrouping = new DataGrouping({width: chart.canvas.width, height: chart.canvas.height}, 1);
+            groupedData = dataGrouping.groupData(dataset.data);
+            dataset.data = groupedData;
         });
     }
 }
