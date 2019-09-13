@@ -62,17 +62,20 @@ class DataGrouping {
 
 var helpers = Chart.helpers;
 var defaultOptions = {
-    pixelSize: 1,
+    groupSize: 1,
 };
 
 var largeDatasetsPlugin = {
     id: 'largeDatasets',
+    oldData: undefined,
 
     beforeUpdate: function(chart) {
+        if (this.getOption(chart, "keepFullData") && !this.oldData)
+            this.oldData = JSON.parse(JSON.stringify(chart.data.datasets));
         chart.data.datasets.forEach(function(dataset) {
             if (dataset.data.length == 0)
                 return;
-            var pixelSize = this.getOption(chart, "pixelSize");
+            var pixelSize = this.getOption(chart, "groupSize");
             var dataGrouping = new DataGrouping({width: chart.canvas.width, height: chart.canvas.height}, pixelSize);
             groupedData = dataGrouping.groupData(dataset.data);
             dataset.data = groupedData;
