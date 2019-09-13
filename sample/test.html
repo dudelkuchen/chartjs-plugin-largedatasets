@@ -66,6 +66,10 @@
 			},
 			options: {
                 plugins: {
+					largeDatasets: {
+						groupSize: 2,
+						keepFullData: true,
+					},
 					crosshair: {
 						line: {
 						color: '#F66',  // crosshair line color
@@ -127,7 +131,7 @@
             var time = Date.now();
 			var data = 5;
 			var start = Date.now()
-            for (var i = 0; i < 500000; i++) {
+            for (var i = 0; i < 100000; i++) {
                 time += 5000;
                 data += Math.floor(Math.random() * (100 - (-100) + 1)) + (-100);
 				config.data.datasets[0].data.push({
@@ -143,7 +147,8 @@
 			end = Date.now();
 			console.log("Reduced Chart: " + (start - end) / 1000);
             var ctx2 = document.getElementById('mySecoundChart').getContext('2d');
-			config2.options["plugins"]["largeDatasets"] = false;
+			//config2.options["plugins"]["largeDatasets"] = false;
+			config2.options["plugins"]["largeDatasets"]["pixelSize"] = 1;
 			start = Date.now();
 
 			// Chart without optimization
