@@ -22,4 +22,4 @@ new Chart(ctx, {
 ```
 
 ## License
-`chartjs-plugin-crosshair` is available under the [MIT license](LICENSE.md).
+`chartjs-plugin-largedatasets` is available under the [MIT license](LICENSE.md).
