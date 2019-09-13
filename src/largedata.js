@@ -30,11 +30,11 @@ class DataGrouping {
     }
 
     getPixelPositionWidth(value, min, max) {
-        return Math.floor(this.getPointPercentage(value, min, max) * this.area.width);
+        return Math.floor(this.getPointPercentage(value, min, max) * this.area.width / this.pixelSize);
     }
 
     getPixelPositionHeight(value, min, max) {
-        return Math.floor(this.getPointPercentage(value, min, max) * this.area.height);
+        return Math.floor(this.getPointPercentage(value, min, max) * this.area.height / this.pixelSize);
     }
 
     getMinMaxXFromData(data) {
@@ -60,18 +60,28 @@ class DataGrouping {
     }
 }
 
-var largeDatasetPlugin = {
+var helpers = Chart.helpers;
+var defaultOptions = {
+    pixelSize: 1,
+};
+
+var largeDatasetsPlugin = {
     id: 'largeDatasets',
 
     beforeUpdate: function(chart) {
         chart.data.datasets.forEach(function(dataset) {
             if (dataset.data.length == 0)
                 return;
-            var dataGrouping = new DataGrouping({width: chart.canvas.width, height: chart.canvas.height}, 1);
+            var pixelSize = this.getOption(chart, "pixelSize");
+            var dataGrouping = new DataGrouping({width: chart.canvas.width, height: chart.canvas.height}, pixelSize);
             groupedData = dataGrouping.groupData(dataset.data);
             dataset.data = groupedData;
-        });
-    }
+        }.bind(this));
+    },
+
+    getOption: function(chart, category) {
+        return helpers.getValueOrDefault(chart.options.plugins.largeDatasets[category] ? chart.options.plugins.largeDatasets[category] : undefined, defaultOptions[category]);
+    },
 }
 
-Chart.plugins.register(largeDatasetPlugin);
+Chart.plugins.register(largeDatasetsPlugin);
