@@ -12,22 +12,15 @@ class DataGrouping {
     }
 
     groupData(data) {
-        var dictionary = {};
+        var dictionary = new PointDoubleValueDictionary();
         var minMaxX = this.getMinMaxXFromData(data);
         var minMaxY = this.getMinMaxYFromData(data);
         for (let i = data.length - 1; i >= 0; i--) {
             var x = this.getPixelPositionWidth(data[i].x, minMaxX.min, minMaxX.max);
             var y = this.getPixelPositionHeight(data[i].y, minMaxY.min, minMaxY.max);
-            if (!dictionary.hasOwnProperty(x))
-                dictionary[x] = {};
-            dictionary[x][y] = data[i];
+            dictionary.add(x,y, data[i], i);
         }
-        var groupedData = [];
-        for (var xValue in dictionary) {
-            for (var yValue in dictionary[xValue])
-                groupedData.push(dictionary[xValue][yValue])
-        }
-        return groupedData.sort((a, b) => (a.x > b.x) ? 1 : -1);
+        return dictionary.getDictionaryValues();
     }
 
     getPointPercentage(value, min, max) {
@@ -62,6 +55,27 @@ class DataGrouping {
                 minMax.max = data[i].y;
         }
         return minMax;
+    }
+}
+
+class PointDoubleValueDictionary {
+    constructor() {
+        this._innerDictionary = {};
+    }
+
+    add(key1, key2, data, index) {
+        if (!this._innerDictionary.hasOwnProperty(key1))
+            this._innerDictionary[key1] = {};
+        this._innerDictionary[key1][key2] = {data, index};
+    }
+
+    getDictionaryValues() {
+        var groupedData = [];
+        for (var xValue in this._innerDictionary) {
+            for (var yValue in this._innerDictionary[xValue])
+                groupedData.push(this._innerDictionary[xValue][yValue])
+        }
+        return groupedData.sort((a, b) => (a.index > b.index) ? 1 : -1).map((d) => d.data);
     }
 }
 
