@@ -2,7 +2,7 @@
   "name": "chartjs-plugin-largedatasets",
   "version": "0.1.0",
   "description": "Chart.js plugin to display large datasets in a line chart",
-  "main": "dist/index.js",
+  "main": "dist/chartjs-plugin-largedatasets.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -15,11 +15,35 @@
   "bugs": {
     "url": "https://github.com/dudelkuchen/chartjs-plugin-largedatasets/issues"
   },
+  "engines": {
+    "node": "10.15.3",
+    "npm": "6.9.0"
+  },
   "homepage": "https://github.com/dudelkuchen/chartjs-plugin-largedatasets#readme",
+  "devDependencies": {
+    "eslint-config-chartjs": "^0.1.0",
+    "gitbook-cli": "^2.3.2",
+    "gulp": "3.9.1",
+    "gulp-eslint": "^4.0.1",
+    "gulp-file": "^0.4.0",
+    "gulp-rename": "^1.2.2",
+    "gulp-replace": "^0.6.1",
+    "gulp-streamify": "^1.0.2",
+    "gulp-terser": "^1.2.0",
+    "gulp-util": "^3.0.7",
+    "gulp-zip": "^4.1.0",
+    "rollup": "^0.53.4",
+    "rollup-stream": "^1.24.1",
+    "vinyl-source-stream": "^2.0.0",
+    "yargs": "^10.1.1",
+    "path": "^0.12.7",
+    "mz": "^2.7.0"
+  },
   "peerDependencies": {
     "chart.js": ">= 2.8.0 < 3"
   },
   "dependencies": {
-    "chart.js": "^2.8.0"
+    "chart.js": "^2.8.0",
+    "gulp-install": "^1.1.0"
   }
 }
