@@ -75,7 +75,7 @@ var largeDatasetsPlugin = {
                 return;
             var pixelSize = this.getOption(chart, "groupSize");
             var dataGrouping = new DataGrouping({width: chart.canvas.width, height: chart.canvas.height}, pixelSize);
-            groupedData = dataGrouping.groupData(dataset.data);
+            var groupedData = dataGrouping.groupData(dataset.data);
             dataset.data = groupedData;
         }.bind(this));
     },
