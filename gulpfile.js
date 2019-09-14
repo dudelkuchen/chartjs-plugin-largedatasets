@@ -50,17 +50,3 @@ gulp.task('lint', function () {
         .pipe(eslint.format())
         .pipe(eslint.failAfterError());
 });
-
-gulp.task('docs', function(done) {
-	var script = require.resolve('gitbook-cli/bin/gitbook.js');
-	var out = path.join(argv.output, argv.docsDir);
-	var cmd = process.execPath;
-
-	exec([cmd, script, 'install', './'].join(' ')).then(() => {
-		return exec([cmd, script, 'build', './', out].join(' '));
-	}).then(() => {
-		done();
-	}).catch((err) => {
-		done(new Error(err.stdout || err));
-	});
-});
