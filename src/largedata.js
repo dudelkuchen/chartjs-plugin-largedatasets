@@ -1,3 +1,10 @@
+import Chart from 'chart.js';
+
+var helpers = Chart.helpers;
+var defaultOptions = {
+    groupSize: 1,
+};
+
 class DataGrouping {
     constructor(area, pixelSize) {
         this.area = area;
@@ -58,11 +65,6 @@ class DataGrouping {
     }
 }
 
-var helpers = Chart.helpers;
-var defaultOptions = {
-    groupSize: 1,
-};
-
 var largeDatasetsPlugin = {
     id: 'largeDatasets',
     oldData: undefined,
@@ -71,7 +73,7 @@ var largeDatasetsPlugin = {
         if (this.getOption(chart, "keepFullData") && !this.oldData)
             this.oldData = JSON.parse(JSON.stringify(chart.data.datasets));
         chart.data.datasets.forEach(function(dataset) {
-            if (dataset.data.length == 0)
+            if (dataset.data.length === 0)
                 return;
             var pixelSize = this.getOption(chart, "groupSize");
             var dataGrouping = new DataGrouping({width: chart.canvas.width, height: chart.canvas.height}, pixelSize);
