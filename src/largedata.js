@@ -8,7 +8,7 @@ class DataGrouping {
         var dictionary = {};
         var minMaxX = this.getMinMaxXFromData(data);
         var minMaxY = this.getMinMaxYFromData(data);
-        for (let i = 0; i < data.length; i++) {
+        for (let i = data.length - 1; i >= 0; i--) {
             var x = this.getPixelPositionWidth(data[i].x, minMaxX.min, minMaxX.max);
             var y = this.getPixelPositionHeight(data[i].y, minMaxY.min, minMaxY.max);
             if (!dictionary.hasOwnProperty(x))
@@ -17,12 +17,10 @@ class DataGrouping {
         }
         var groupedData = [];
         for (var xValue in dictionary) {
-            if (Object.prototype.hasOwnProperty.call(dictionary, xValue)) {
-                for (var yValue in dictionary[xValue])
+            for (var yValue in dictionary[xValue])
                 groupedData.push(dictionary[xValue][yValue])
-            }
         }
-        return groupedData;
+        return groupedData.sort((a, b) => (a.x > b.x) ? 1 : -1);
     }
 
     getPointPercentage(value, min, max) {
