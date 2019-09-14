@@ -1,7 +1,7 @@
 # chartjs-plugin-largedatasets
 
 
-[Chart.js](http://www.chartjs.org/) plugin to display large datasets in a line diagram using an algorithm to group the data point. 
+[Chart.js](http://www.chartjs.org/) plugin to display large datasets in a line chart by grouping the data points. 
 
 Requires [Chart.js](https://github.com/chartjs/Chart.js/releases) **2.8.0** or later.
 
