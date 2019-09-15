@@ -3,6 +3,7 @@ import Chart from 'chart.js';
 var helpers = Chart.helpers;
 var defaultOptions = {
     groupSize: 1,
+    caculateForCanvasSize: false,
 };
 
 class DataGrouping {
@@ -81,24 +82,36 @@ class PointDoubleValueDictionary {
 
 var largeDatasetsPlugin = {
     id: 'largeDatasets',
-    oldData: undefined,
+    _calculated: false,
 
     beforeUpdate: function(chart) {
-        if (this.getOption(chart, "keepFullData") && !this.oldData)
-            this.oldData = JSON.parse(JSON.stringify(chart.data.datasets));
+        if (!this.getOption(chart, "caculateForCanvasSize") && this._calculated)
+            return;
+        var canvasSize = this.getCalculationRange(chart);
         chart.data.datasets.forEach(function(dataset) {
             if (dataset.data.length === 0)
                 return;
             var pixelSize = this.getOption(chart, "groupSize");
-            var dataGrouping = new DataGrouping({width: chart.canvas.width, height: chart.canvas.height}, pixelSize);
+            var dataGrouping = new DataGrouping({width: canvasSize.width, height: canvasSize.height}, pixelSize);
             var groupedData = dataGrouping.groupData(dataset.data);
             dataset.data = groupedData;
         }.bind(this));
+        this._calculated = true;
+    },
+
+    getCalculationRange: function(chart) {
+        var canvasSize = { width: chart.canvas.width, height: chart.canvas.height };
+        var canvasSizeOptions = this.getOption(chart, "caculateForCanvasSize");
+        if (canvasSizeOptions) {
+            canvasSize.width = canvasSizeOptions.width;
+            canvasSize.height = canvasSizeOptions.height;
+        }
+        return canvasSize;
     },
 
     getOption: function(chart, category) {
         return helpers.getValueOrDefault(chart.options.plugins.largeDatasets[category] ? chart.options.plugins.largeDatasets[category] : undefined, defaultOptions[category]);
-    },
+    }
 }
 
 Chart.plugins.register(largeDatasetsPlugin);
