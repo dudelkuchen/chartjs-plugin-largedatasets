@@ -179,7 +179,7 @@ var largeDatasetsPlugin = {
     _shouldUseCachedData : function(chart) {
         return (this._getOption(chart, 'recalculateMode') == "resize" 
             || this._getOption(chart, 'recalculateMode') == "increase") && this._canvasSizeTracker.hasSizeChanged(chart) == 1
-            && this._dataCache != undefined);
+            && this._dataCache != undefined;
     }
 
 }
