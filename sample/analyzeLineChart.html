@@ -45,7 +45,7 @@
     <div class="text-center">
         <span class="label">Number datapoints:</span>
         <span id="numberDatapointsLabel" class="value">100000</span>
-        <span><input type="range" min="2500" max="25000000" step="2500" value="100000" id="numberDatapoints" class="control"></span>
+        <span><input type="range" min="2500" max="10000000" step="2500" value="100000" id="numberDatapoints" class="control"></span>
     </div>
     <h3 class="text-center">Configuration</h3>
     <div class="text-center"> 
@@ -114,7 +114,7 @@
                     },
                     tooltips: {
                         mode: 'nearest',
-                        intersect: false
+      				    intersect: false
                     },
                     hover: {
                         mode: 'nearest',
@@ -168,7 +168,7 @@
 
         window.onload = function() {
             document.getElementById('numberDatapoints').addEventListener(isIE ? 'change' : 'input', function() {
-                if (this.value > 300000) {
+                if (this.value > 400000) {
                     document.getElementById('normalChart').disabled = true;
                     document.getElementById('bothCharts').disabled = true
                 } else  {
