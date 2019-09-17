@@ -4,6 +4,7 @@ var helpers = Chart.helpers;
 var defaultOptions = {
     groupSize: 1,
     caculateForCanvasSize: false,
+    recalculateMode: 'none',
 };
 
 class DataGrouping {
@@ -80,18 +81,53 @@ class PointDoubleValueDictionary {
     }
 }
 
+class CanvasSizeTracker  {
+    constructor() {
+        this._lastCanvasSize = { width: 0, height: 0};
+        this._currentCanvasSize = { width: 0, height: 0};
+        this._deviation = 0.05
+    }
+
+    update(chart) {
+        this._lastCanvasSize = this._currentCanvasSize;
+        this._currentCanvasSize = { width: chart.canvas.width, height: chart.canvas.height };
+    }
+
+    hasSizeChanged(chart) {
+        var currentSize = this._currentCanvasSize.width * this._currentCanvasSize.height;
+        var lastSize = this._lastCanvasSize.width * this._lastCanvasSize.height;
+        if (currentSize > lastSize * (1 + this._deviation))
+            return 1;
+        else if (currentSize < lastSize * (1 - this._deviation))
+            return -1;
+        return 0;
+    }
+}
+
 var largeDatasetsPlugin = {
     id: 'largeDatasets',
     _calculated: false,
+    _canvasSizeTracker: new CanvasSizeTracker(),
+    _dataCache: [],
+
+    afterInit: function(chart) {
+        this._canvasSizeTracker.update(chart);
+        this._updateFunction(chart);
+    },
 
     beforeUpdate: function(chart) {
-        if (!this.getOption(chart, "caculateForCanvasSize") && this._calculated)
+        if (this._calculated)
             return;
-        var canvasSize = this.getCalculationRange(chart);
-        chart.data.datasets.forEach(function(dataset) {
+        var canvasSize = this._getCalculationRange(chart);
+        var datasets = chart.data.datasets;
+        if (this._shouldUseCachedData) {
+            for (let i = 0; i < this._dataCache.length; i++)
+                datasets[i].data = this._dataCache[i].data;
+        }
+        datasets.forEach(function(dataset) {
             if (dataset.data.length === 0)
                 return;
-            var pixelSize = this.getOption(chart, "groupSize");
+            var pixelSize = this._getOption(chart, "groupSize");
             var dataGrouping = new DataGrouping({width: canvasSize.width, height: canvasSize.height}, pixelSize);
             var groupedData = dataGrouping.groupData(dataset.data);
             dataset.data = groupedData;
@@ -99,9 +135,26 @@ var largeDatasetsPlugin = {
         this._calculated = true;
     },
 
-    getCalculationRange: function(chart) {
+    resize: function(chart) {
+        this._canvasSizeTracker.update(chart);
+        if (!this._getOption(chart, "caculateForCanvasSize")) {
+            var resized = this._canvasSizeTracker.hasSizeChanged(chart);
+            var recalculateMode = this._getOption(chart, 'recalculateMode');
+            switch (recalculateMode) {
+                case "resize": this._calculated = resized == 0; break;
+                case "increase": this._calculated = resized != 1; break;
+                case "decrease": this._calculated = resized != -1; break;
+            }
+        }
+    },
+
+    destroy: function(chart) {
+        this._calculated = false;
+    },
+
+    _getCalculationRange: function(chart) {
         var canvasSize = { width: chart.canvas.width, height: chart.canvas.height };
-        var canvasSizeOptions = this.getOption(chart, "caculateForCanvasSize");
+        var canvasSizeOptions = this._getOption(chart, "caculateForCanvasSize");
         if (canvasSizeOptions) {
             canvasSize.width = canvasSizeOptions.width;
             canvasSize.height = canvasSizeOptions.height;
@@ -109,9 +162,26 @@ var largeDatasetsPlugin = {
         return canvasSize;
     },
 
-    getOption: function(chart, category) {
+    _getOption: function(chart, category) {
         return helpers.getValueOrDefault(chart.options.plugins.largeDatasets[category] ? chart.options.plugins.largeDatasets[category] : undefined, defaultOptions[category]);
+    },
+
+    _updateFunction: function(chart) {
+        if (this._getOption(chart, 'saveFullData') || this._getOption(chart, 'recalculateMode') == "resize" 
+                                                  || this._getOption(chart, 'recalculateMode') == "increase" ) {
+            chart.data.datasets.forEach(function(dataset) {
+                this._dataCache.push({ data: JSON.parse(JSON.stringify(dataset.data))});
+            }.bind(this))
+        }
+        this._calculated = false;
+    },
+
+    _shouldUseCachedData : function(chart) {
+        return (this._getOption(chart, 'recalculateMode') == "resize" 
+            || this._getOption(chart, 'recalculateMode') == "increase") && this._canvasSizeTracker.hasSizeChanged(chart) == 1
+            && this._dataCache != undefined);
     }
+
 }
 
 Chart.plugins.register(largeDatasetsPlugin);
