@@ -95,7 +95,7 @@
                     },
                     title: {
                         display: true,
-                        text: 'Big dataset line chart'
+                        text: 'Big dataset with largedataset plug in'
                     },
                     scales: {
                         xAxes: [{
@@ -160,6 +160,7 @@
 
             setTimeout(function (){
                 var ctx2 = document.getElementById(canvasID2).getContext('2d');
+                config2.options.title.text = 'Big dataset without largedataset plug in'
                 window.myChart2 = new Chart(ctx2, config2);
             }, 1000)
 

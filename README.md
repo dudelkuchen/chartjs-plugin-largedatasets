@@ -1,7 +1,7 @@
 # chartjs-plugin-largedatasets
 
 
-[Chart.js](http://www.chartjs.org/) plugin to display large datasets in a line chart by grouping the data points. 
+[Chart.js](http://www.chartjs.org/) plugin to display large datasets in a line chart. The plugin reduces the number of data points drawn for a defined number of pixels. This way, only points that are actually needed will be displayed. 
 
 Requires [Chart.js](https://github.com/chartjs/Chart.js/releases) **2.8.0** or later.
 
@@ -15,6 +15,7 @@ new Chart(ctx, {
     plugins: {
       largedatasets: {
           groupSize: 1, // defines the grouping size in pixel
+          recalculateMode: 'none', // no recalculation after window resize
       }
     }
   }
@@ -31,11 +32,10 @@ new Chart(ctx, {
 
 
 #### `groupingSize`
-The pixel area in which a single data point is displayed. Default is 1
+The pixel area in which a single data point is displayed. E.g one datapoint data point per 2x2 pixel if set to 2. Default value is 1.
 
 #### `calculateForCanvasSize`
-The canvas size for which the algorithm calculates the required points. Default ist not set.
-If this options is activated the recalculateMode option is ignored. 
+Fixed canvas size for which the algorithm calculates the required points. If not set, the plugin uses the current canvas size. If this options is activated the recalculateMode option is ignored. 
 
 #### `recalculateMode`
 Indicates for which resize event the data point resolution should be recalculated.
@@ -45,24 +45,19 @@ Indicates for which resize event the data point resolution should be recalculate
 * `increase`: Recalculation when increasing the canvas size.
 * `resize`: Recalculation for every resize event.
 
-When setting the `recalculateMode` to `increase` or `resize` the algorithm uses the original data to calculate the resoltion. So the original Data will be cached which takes much longer calculation time and memory. Don't this mode with extremly big data.
+When setting the `recalculateMode` to `increase` or `resize` the algorithm uses the original data to calculate the resolution. So the original Data will be cached which takes much longer calculation time and memory. Don't use this mode with extremly big data.
 
-### Example
+## Development
 
-The following snippet presents the usage of the options
-```javascript
-new Chart(ctx, {
-  // ... data ...
-  options: {
-    // ... other options ...
-    plugins: {
-      largedatasets: {
-          groupSize: 1, // defined the grouping size for data points
-      }
-    }
-  }
-});
-```
+You first need to install node dependencies (requires [Node.js](https://nodejs.org/)):
+
+    > npm install
+
+The following commands will then be available from the repository root:
+
+    > gulp build            // build dist files
+    > gulp lint             // perform code linting
+
 
 ## License
 `chartjs-plugin-largedatasets` is available under the [MIT license](LICENSE.md).
