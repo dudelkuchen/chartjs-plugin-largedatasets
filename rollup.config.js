@@ -11,8 +11,9 @@ const banner = `/*
  */`;
 
 export default {
-	input: 'src/largedata.js',
+	input: 'src/index.js',
 	banner: banner,
+	name: 'ChartLargeDatasets',
 	format: 'umd',
 	external: [
 		'chart.js'
