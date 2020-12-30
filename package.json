@@ -1,17 +1,19 @@
 {
   "name": "chartjs-plugin-largedatasets",
   "version": "0.1.0",
-  "description": "Chart.js plugin to display large datasets in a line chart",
   "main": "dist/chartjs-plugin-largedatasets.js",
+  "jsdelivr": "dist/chartjs-plugin-largedatasets.min.js",
+  "unpkg": "dist/chartjs-plugin-largedatasets.js",
+  "description": "Chart.js plugin for large datasets. ",
+  "author": "Christopher Beine",
+  "license": "MIT",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"No test specified\""
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/dudelkuchen/chartjs-plugin-largedatasets.git"
   },
-  "author": "",
-  "license": "MIT",
   "bugs": {
     "url": "https://github.com/dudelkuchen/chartjs-plugin-largedatasets/issues"
   },
