@@ -14,7 +14,7 @@ new Chart(ctx, {
     // ... other options ...
     plugins: {
       largedatasets: {
-          groupSize: 1, // defines the grouping size in pixel
+          groupSize: 1, // defines on how many pixels a point is drawn. 
           recalculationMode: 'none', // no recalculation after window resize
       }
     }
@@ -32,7 +32,7 @@ new Chart(ctx, {
 
 
 #### `groupingSize`
-The pixel area in which a single data point is displayed. E.g one datapoint data point per 2x2 pixel if set to 2. Default value is 1.
+The pixel area in which a single data point is displayed. E.g one datapoint per 2x2 pixel if set to 2. Default value is 1.
 
 #### `calculateForCanvasSize`
 Fixed canvas size for which the algorithm calculates the required points. If not set, the plugin uses the current canvas size. If this options is activated the recalculationMode option is ignored. 
