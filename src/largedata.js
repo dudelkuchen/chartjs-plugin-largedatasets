@@ -4,7 +4,7 @@ var helpers = Chart.helpers;
 var defaultOptions = {
     groupSize: 1,
     caculateForCanvasSize: false,
-    recalculateMode: 'none',
+    recalculationMode: 'none',
 };
 
 class DataGrouping {
@@ -139,8 +139,8 @@ var largeDatasetsPlugin = {
         this._canvasSizeTracker.update(chart);
         if (!this._getOption(chart, "caculateForCanvasSize")) {
             var resized = this._canvasSizeTracker.hasSizeChanged(chart);
-            var recalculateMode = this._getOption(chart, 'recalculateMode');
-            switch (recalculateMode) {
+            var recalculationMode = this._getOption(chart, 'recalculationMode');
+            switch (recalculationMode) {
                 case "resize": this._calculated = resized == 0; break;
                 case "increase": this._calculated = resized != 1; break;
                 case "decrease": this._calculated = resized != -1; break;
@@ -167,8 +167,8 @@ var largeDatasetsPlugin = {
     },
 
     _updateFunction: function(chart) {
-        if (this._getOption(chart, 'saveFullData') || this._getOption(chart, 'recalculateMode') == "resize" 
-                                                  || this._getOption(chart, 'recalculateMode') == "increase" ) {
+        if (this._getOption(chart, 'saveFullData') || this._getOption(chart, 'recalculationMode') == "resize" 
+                                                  || this._getOption(chart, 'recalculationMode') == "increase" ) {
             chart.data.datasets.forEach(function(dataset) {
                 this._dataCache.push({ data: JSON.parse(JSON.stringify(dataset.data))});
             }.bind(this))
@@ -177,8 +177,8 @@ var largeDatasetsPlugin = {
     },
 
     _shouldUseCachedData : function(chart) {
-        return (this._getOption(chart, 'recalculateMode') == "resize" 
-            || this._getOption(chart, 'recalculateMode') == "increase") && this._canvasSizeTracker.hasSizeChanged(chart) == 1
+        return (this._getOption(chart, 'recalculationMode') == "resize" 
+            || this._getOption(chart, 'recalculationMode') == "increase") && this._canvasSizeTracker.hasSizeChanged(chart) == 1
             && this._dataCache != undefined;
     }
 

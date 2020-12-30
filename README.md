@@ -15,7 +15,7 @@ new Chart(ctx, {
     plugins: {
       largedatasets: {
           groupSize: 1, // defines the grouping size in pixel
-          recalculateMode: 'none', // no recalculation after window resize
+          recalculationMode: 'none', // no recalculation after window resize
       }
     }
   }
@@ -28,16 +28,16 @@ new Chart(ctx, {
 | ---- | ---- | ----
 | [`groupingSize`](#color) | `Number` | `1`
 | [`caculateForCanvasSize`](#color) | `{width: x, height: y}` | `false`
-| [`recalculateMode`](#color) | `[resize, increase, decrease, none]` | `none`
+| [`recalculationMode`](#color) | `[resize, increase, decrease, none]` | `none`
 
 
 #### `groupingSize`
 The pixel area in which a single data point is displayed. E.g one datapoint data point per 2x2 pixel if set to 2. Default value is 1.
 
 #### `calculateForCanvasSize`
-Fixed canvas size for which the algorithm calculates the required points. If not set, the plugin uses the current canvas size. If this options is activated the recalculateMode option is ignored. 
+Fixed canvas size for which the algorithm calculates the required points. If not set, the plugin uses the current canvas size. If this options is activated the recalculationMode option is ignored. 
 
-#### `recalculateMode`
+#### `recalculationMode`
 Indicates for which resize event the data point resolution should be recalculated.
 
 * `none`: The data point resolution is not recalculated.
@@ -45,7 +45,7 @@ Indicates for which resize event the data point resolution should be recalculate
 * `increase`: Recalculation when increasing the canvas size.
 * `resize`: Recalculation for every resize event.
 
-When setting the `recalculateMode` to `increase` or `resize` the algorithm uses the original data to calculate the resolution. So the original Data will be cached which takes much longer calculation time and memory. Don't use this mode with extremly big data.
+When setting the `recalculationMode` to `increase` or `resize` the algorithm uses the original data to calculate the resolution. So the original Data will be cached which takes much longer calculation time and memory. Don't use this mode with extremly big data.
 
 ## Development
 
