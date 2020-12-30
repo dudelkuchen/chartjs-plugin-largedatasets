@@ -45,7 +45,7 @@ Indicates for which resize event the data point resolution should be recalculate
 * `increase`: Recalculation when increasing the canvas size.
 * `resize`: Recalculation for every resize event.
 
-When setting the `recalculationMode` to `increase` or `resize` the algorithm uses the original data to calculate the resolution. So the original Data will be cached which takes much longer calculation time and memory. Don't use this mode with extremly big data.
+When setting the `recalculationMode` to `increase` or `resize` the algorithm uses the original data to calculate the resolution. So the original d]ata will be cached which takes much longer calculation time and memory. Don't use this mode with extremly big data.
 
 ## Development
 
