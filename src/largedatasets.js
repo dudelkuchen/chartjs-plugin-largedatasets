@@ -184,4 +184,5 @@ var largeDatasetsPlugin = {
 
 }
 
-Chart.plugins.register(largeDatasetsPlugin);
+
+export default largeDatasetsPlugin;
