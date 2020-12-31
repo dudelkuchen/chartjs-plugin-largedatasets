@@ -47,5 +47,17 @@
   "dependencies": {
     "chart.js": "^2.8.0",
     "gulp-install": "^1.1.0"
-  }
+  },
+  "directories": {
+    "doc": "doc"
+  },
+  "keywords": [
+    "chartjs",
+    "charjs-plugin",
+    "plugin",
+    "monitoring",
+    "large-dataset",
+    "large-datasets",
+    "big-data"
+  ]
 }
