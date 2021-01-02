@@ -100,14 +100,50 @@ class CanvasSizeTracker  {
     }
 }
 
+class ChartTooltipHandler {
+    constructor() {
+        this._chart = undefined
+        this._timer = undefined
+        this._position = {x: -1, y: -1}
+    }
+
+    trackChart(chart) {
+        this._chart = chart
+        this._chart.canvas.addEventListener('mousemove', this._mouseMove.bind(this))
+    }
+
+    _mouseMove(e) {
+        clearTimeout(this._timer);
+        var mousePosition = {x: e.offsetX, y: e.offsetY};
+        var diff = this._pointDiff(this._position, mousePosition);
+        if (diff > 20) {
+            this._chart.options.tooltips.enabled = false;
+            this._chart.render({duration: 1, lazy: true});
+            this._timer=setTimeout(this._mouseStoppedMoving.bind(this), 1);
+        }
+        this._position = mousePosition;
+    }
+
+    _mouseStoppedMoving() {
+        this._chart.options.tooltips.enabled = true;
+        this._chart.render({duration: 1, lazy: true});
+    }
+
+    _pointDiff(pt1, pt2) {
+        return Math.sqrt(Math.pow(pt1.x - pt2.x, 2) + Math.pow(pt1.y - pt2.y, 2));
+    }
+}
+
 var largeDatasetsPlugin = {
     id: 'largeDatasets',
     _calculated: false,
     _canvasSizeTracker: new CanvasSizeTracker(),
+    _chartTooltipHandler: new ChartTooltipHandler(),
     _dataCache: [],
 
     afterInit: function(chart) {
         this._canvasSizeTracker.update(chart);
+        this._chartTooltipHandler.trackChart(chart)
         this._updateFunction(chart);
     },
 
@@ -129,6 +165,11 @@ var largeDatasetsPlugin = {
             dataset.data = groupedData;
         }.bind(this));
         this._calculated = true;
+    },
+
+    beforeDraw: function(chart, e) {
+        var zv = 0;
+        return zv;
     },
 
     resize: function(chart) {
