@@ -15,8 +15,9 @@ class DataGrouping {
 
     groupData(data) {
         var dictionary = new PointDoubleValueDictionary();
-        var minMaxX = this.getMinMaxXFromData(data);
-        var minMaxY = this.getMinMaxYFromData(data);
+        var minMax = this.getMinMaxFromData(data)
+        var minMaxX = minMax.minMaxX;
+        var minMaxY = minMax.minMaxY;
         for (let i = data.length - 1; i >= 0; i--) {
             var x = this.getPixelPositionWidth(data[i].x, minMaxX.min, minMaxX.max);
             var y = this.getPixelPositionHeight(data[i].y, minMaxY.min, minMaxY.max);
@@ -37,26 +38,21 @@ class DataGrouping {
         return Math.floor(this.getPointPercentage(value, min, max) * this.area.height / this.pixelSize);
     }
 
-    getMinMaxXFromData(data) {
-        var minMax = {min: data[0].x, max: data[0].x };
+    getMinMaxFromData(data) {
+        var minMaxX = {min: data[0].x, max: data[0].x };
+        var minMaxY = {min: data[0].y, max: data[0].y }
         for (let i = 1; i < data.length; i++) {
-            if (minMax.min > data[i].x)
-                minMax.min = data[i].x;
-            else if (minMax.max < data[i].x)
-                minMax.max = data[i].x;
+            if (minMaxX.min > data[i].x)
+                minMaxX.min = data[i].x;
+            else if (minMaxX.max < data[i].x)
+                minMaxX.max = data[i].x;
+            
+            if (minMaxY.min > data[i].y)
+                minMaxY.min = data[i].y;
+            else if (minMaxY.max < data[i].y)
+                minMaxY.max = data[i].y;
         }
-        return minMax;
-    }
-    
-    getMinMaxYFromData(data) {
-        var minMax = {min: data[0].y, max: data[0].y }
-        for (let i = 1; i < data.length; i++) {
-            if (minMax.min > data[i].y)
-                minMax.min = data[i].y;
-            else if (minMax.max < data[i].y)
-                minMax.max = data[i].y;
-        }
-        return minMax;
+        return {minMaxY, minMaxX};
     }
 }
 
