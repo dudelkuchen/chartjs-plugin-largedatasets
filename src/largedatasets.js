@@ -5,6 +5,7 @@ var defaultOptions = {
     groupSize: 1,
     caculateForCanvasSize: false,
     recalculationMode: 'none',
+    tooltipOptimization: false
 };
 
 class DataGrouping {
@@ -143,7 +144,8 @@ var largeDatasetsPlugin = {
 
     afterInit: function(chart) {
         this._canvasSizeTracker.update(chart);
-        this._chartTooltipHandler.trackChart(chart)
+        if (this._getOption(chart, 'tooltipOptimization'))
+            this._chartTooltipHandler.trackChart(chart)
         this._updateFunction(chart);
     },
 
