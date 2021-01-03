@@ -105,15 +105,20 @@ class ChartTooltipHandler {
     constructor() {
         this._chart = undefined
         this._timer = undefined
+        this._canvas = undefined
         this._position = {x: -1, y: -1}
+        this._myMouseMove = this._mouseMove.bind(this)
     }
 
     trackChart(chart) {
-        this._chart = chart
-        this._chart.canvas.addEventListener('mousemove', this._mouseMove.bind(this))
+        this._chart = chart;
+        this._canvas = chart.canvas;
+        this._canvas.addEventListener('mousemove', this._myMouseMove)
     }
 
     untrackChart() {
+        this._canvas.removeEventListener('mousemove', this._myMouseMove);
+        this._canvas = undefined;
         this._chart = undefined;
     }
 
