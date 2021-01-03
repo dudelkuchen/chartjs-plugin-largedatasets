@@ -113,6 +113,10 @@ class ChartTooltipHandler {
         this._chart.canvas.addEventListener('mousemove', this._mouseMove.bind(this))
     }
 
+    untrackChart() {
+        this._chart = undefined;
+    }
+
     _mouseMove(e) {
         clearTimeout(this._timer);
         var mousePosition = {x: e.offsetX, y: e.offsetY};
@@ -135,17 +139,33 @@ class ChartTooltipHandler {
     }
 }
 
+class ChartTracker {
+    constructor() {
+        this._charts = {}
+    }
+
+    addChart(chart) {
+        var tooltipHandler = new ChartTooltipHandler();
+        tooltipHandler.trackChart(chart);
+        this._charts[chart.id] = tooltipHandler;
+    }
+
+    removeChart(chart) {
+        this._charts[chart.id].untrackChart()
+    }
+}
+
 var largeDatasetsPlugin = {
     id: 'largeDatasets',
     _calculated: false,
     _canvasSizeTracker: new CanvasSizeTracker(),
-    _chartTooltipHandler: new ChartTooltipHandler(),
+    _chartTooltipTracker: new ChartTracker(),
     _dataCache: [],
 
     afterInit: function(chart) {
         this._canvasSizeTracker.update(chart);
         if (this._getOption(chart, 'tooltipOptimization'))
-            this._chartTooltipHandler.trackChart(chart)
+            this._chartTooltipTracker.addChart(chart)
         this._updateFunction(chart);
     },
 
@@ -169,11 +189,6 @@ var largeDatasetsPlugin = {
         this._calculated = true;
     },
 
-    beforeDraw: function(chart, e) {
-        var zv = 0;
-        return zv;
-    },
-
     resize: function(chart) {
         this._canvasSizeTracker.update(chart);
         if (!this._getOption(chart, "caculateForCanvasSize")) {
@@ -189,6 +204,7 @@ var largeDatasetsPlugin = {
 
     destroy: function(chart) {
         this._calculated = false;
+        this._chartTooltipTracker.removeChart(chart);
     },
 
     _getCalculationRange: function(chart) {

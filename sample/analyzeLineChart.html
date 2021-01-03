@@ -200,12 +200,14 @@
             document.getElementById('reducedChart').addEventListener('click', function() {
                 var pluginConfig = {
                     groupSize: document.getElementById('groupSize').value,
+                    tooltipOptimization: true
                 };
                 createChart(pluginConfig, 'myChart');
             });
             document.getElementById('bothCharts').addEventListener('click', function() {
                 var pluginConfig = {
                     groupSize: document.getElementById('groupSize').value,
+                    tooltipOptimization: true
                 };
                 var pluginConfig2 = false;
                 createChart(pluginConfig, 'myChart', pluginConfig2, 'myChart2');
