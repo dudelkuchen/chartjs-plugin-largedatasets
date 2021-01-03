@@ -3,7 +3,7 @@
   <meta charset="utf-8">
   <title>Chartjs-plugin-largedatasets plugin example</title>
   <script src="https://cdn.jsdelivr.net/npm/moment@2.24.0/min/moment.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4"></script>
   <script src="../dist/chartjs-plugin-largedatasets.js"></script>
   <style>
         canvas {
@@ -153,7 +153,13 @@
             }
 
             var ctx = document.getElementById(canvasID).getContext('2d');
+
+            console.log("Creating chart with largedatasets plugin")
+            var t0 = performance.now()
             window.myChart = new Chart(ctx, config);
+            var t1 = performance.now()
+            console.log("Created chart with largedatasets plugin in  " + (t1 - t0) + " milliseconds.")
+
 
             if (pluginConfig2 == undefined)
                 return;
@@ -161,7 +167,12 @@
             setTimeout(function (){
                 var ctx2 = document.getElementById(canvasID2).getContext('2d');
                 config2.options.title.text = 'Big dataset without largedataset plug in'
+
+                console.log("Creating chart without largedatasets plugin")
+                var t0 = performance.now()
                 window.myChart2 = new Chart(ctx2, config2);
+                var t1 = performance.now()
+                console.log("Created chart without largedatasets plugin in  " + (t1 - t0) + " milliseconds.")
             }, 1000)
 
             

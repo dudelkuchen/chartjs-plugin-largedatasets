@@ -119,7 +119,7 @@ class ChartTooltipHandler {
         if (diff > 20) {
             this._chart.options.tooltips.enabled = false;
             this._chart.render({duration: 1, lazy: true});
-            this._timer=setTimeout(this._mouseStoppedMoving.bind(this), 1);
+            this._timer=setTimeout(this._mouseStoppedMoving.bind(this), 30);
         }
         this._position = mousePosition;
     }
