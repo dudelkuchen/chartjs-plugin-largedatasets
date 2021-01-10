@@ -19,12 +19,14 @@ class DataGrouping {
         var minMax = this.getMinMaxFromData(data)
         var minMaxX = minMax.minMaxX;
         var minMaxY = minMax.minMaxY;
+        dictionary.rangeX = minMaxX;
+        dictionary.rangeY = minMaxY;
         for (let i = data.length - 1; i >= 0; i--) {
             var x = this.getPixelPositionWidth(data[i].x, minMaxX.min, minMaxX.max);
             var y = this.getPixelPositionHeight(data[i].y, minMaxY.min, minMaxY.max);
             dictionary.add(x,y, data[i], i);
         }
-        return dictionary.getDictionaryValues();
+        return dictionary;
     }
 
     getPointPercentage(value, min, max) {
@@ -60,6 +62,8 @@ class DataGrouping {
 class PointDoubleValueDictionary {
     constructor() {
         this._innerDictionary = {};
+        this.rangeX = {min: 0, max: 0}
+        this.rangeY = {min: 0, max: 0}
     }
 
     add(key1, key2, data, index) {
@@ -75,6 +79,15 @@ class PointDoubleValueDictionary {
                 groupedData.push(this._innerDictionary[xValue][yValue])
         }
         return groupedData.sort((a, b) => (a.index > b.index) ? 1 : -1).map((d) => d.data);
+    }
+
+    get(key1, key2) {
+        var data = this._innerDictionary[key1];
+        if (data != undefined)
+            var data2 = data[key2];
+            if (data2 != undefined)
+                return data2.data;
+        return undefined;
     }
 }
 
@@ -108,12 +121,14 @@ class ChartTooltipHandler {
         this._canvas = undefined
         this._position = {x: -1, y: -1}
         this._myMouseMove = this._mouseMove.bind(this)
+        this._events = []
     }
 
     trackChart(chart) {
         this._chart = chart;
+        this._events = this._chart.options.events;
         this._canvas = chart.canvas;
-        this._canvas.addEventListener('mousemove', this._myMouseMove)
+        this._canvas.addEventListener('click', this._myMouseMove)
     }
 
     untrackChart() {
@@ -122,21 +137,63 @@ class ChartTooltipHandler {
         this._chart = undefined;
     }
 
+    _getNeighbours(number) {
+        return { min: Math.ceil(number) - 3, max: Math.floor(number) + 3 };
+    }
+
     _mouseMove(e) {
         clearTimeout(this._timer);
         var mousePosition = {x: e.offsetX, y: e.offsetY};
-        var diff = this._pointDiff(this._position, mousePosition);
-        if (diff > 20) {
-            this._chart.options.tooltips.enabled = false;
-            this._chart.render({duration: 1, lazy: true});
-            this._timer=setTimeout(this._mouseStoppedMoving.bind(this), 30);
+        var width = this._chart.canvas.width;
+        var height = this._chart.canvas.height;
+
+        var diffP = (this._chart.data.datasets[0]._dictData.rangeY.min - this._chart.scales["y-axis-0"].min) / (this._chart.scales["y-axis-0"].max - this._chart.scales["y-axis-0"].min);
+        var diff = (this._chart.chartArea.bottom - this._chart.chartArea.top) * diffP;
+
+        var diffP2 = (this._chart.data.datasets[0]._dictData.rangeY.max - this._chart.scales["y-axis-0"].min) / (this._chart.scales["y-axis-0"].max - this._chart.scales["y-axis-0"].min);
+        var diff2 = (this._chart.chartArea.bottom - this._chart.chartArea.top) * (1 - diffP2);
+
+        var x = e.offsetX - this._chart.chartArea.left;
+        var y = e.offsetY - this._chart.chartArea.top - diff2;   //((this._chart.chartArea.bottom - this._chart.chartArea.top) - (e.offsetY - this._chart.chartArea.top));
+
+        var percX  = x / (this._chart.chartArea.right - this._chart.chartArea.left);
+        var percY = y / (this._chart.chartArea.bottom - this._chart.chartArea.top -  diff2 - diff);
+
+        var newX = width * percX;
+        var newY = height - (height * percY);
+
+        var pt1 = this._getNeighbours(newX);
+        var pt2 = this._getNeighbours(newY);
+
+        for (var i = pt1.min; i <= pt1.max; i++) {
+            for (var k = pt2.min; k <= pt2.max; k++) {
+                var pt = this._chart.data.datasets[0]._dictData.get(i, k);
+                if (pt != undefined)
+                    console.log(pt);
+            }
         }
-        this._position = mousePosition;
+
+        
+
+        //area.left, area.top, area.right - area.left, area.bottom - area.top    
+
+
+        /*var diff = this._pointDiff(this._position, mousePosition);
+        var pt = this._chart.data.datasets[0]._dictData.get(e.offsetX, e.offsetY);
+        if (pt != undefined)
+            openTip(this._chart, pt);*/
+        /*if (diff > 10) {
+            this._chart.options.events = [] 
+            this._chart.render({duration: 2, lazy: true});
+            this._timer=setTimeout(this._mouseStoppedMoving.bind(this), 10);
+        }
+        this._position = mousePosition;*/
     }
 
     _mouseStoppedMoving() {
-        this._chart.options.tooltips.enabled = true;
-        this._chart.render({duration: 1, lazy: true});
+        this._chart.options.events = this._events;
+        openTip(this._chart, 0, 0);
+        this._chart.render({duration: 2, lazy: true});  
     }
 
     _pointDiff(pt1, pt2) {
@@ -188,8 +245,9 @@ var largeDatasetsPlugin = {
                 return;
             var pixelSize = this._getOption(chart, "groupSize");
             var dataGrouping = new DataGrouping({width: canvasSize.width, height: canvasSize.height}, pixelSize);
-            var groupedData = dataGrouping.groupData(dataset.data);
-            dataset.data = groupedData;
+            var dict = dataGrouping.groupData(dataset.data);
+            dataset.data = dict.getDictionaryValues();
+            dataset["_dictData"] = dict;
         }.bind(this));
         this._calculated = true;
     },
@@ -240,7 +298,7 @@ var largeDatasetsPlugin = {
         return (this._getOption(chart, 'recalculationMode') == "resize" 
             || this._getOption(chart, 'recalculationMode') == "increase") && this._canvasSizeTracker.hasSizeChanged(chart) == 1
             && this._dataCache != undefined;
-    }
+    },
 
 }
 
