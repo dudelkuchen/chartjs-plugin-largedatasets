@@ -137,67 +137,57 @@ class ChartTooltipHandler {
         this._chart = undefined;
     }
 
-    _getNeighbours(number) {
-        return { min: Math.ceil(number) - 3, max: Math.floor(number) + 3 };
+    _getRange(number, offset) {
+        return { min: Math.ceil(number) - offset, max: Math.floor(number) + offset };
     }
 
     _mouseMove(e) {
         clearTimeout(this._timer);
         var mousePosition = {x: e.offsetX, y: e.offsetY};
+        this._findPointInArea(mousePosition)
+    }
+
+    _findPointInArea(point) {
         var width = this._chart.canvas.width;
         var height = this._chart.canvas.height;
 
-        var diffP = (this._chart.data.datasets[0]._dictData.rangeY.min - this._chart.scales["y-axis-0"].min) / (this._chart.scales["y-axis-0"].max - this._chart.scales["y-axis-0"].min);
-        var diff = (this._chart.chartArea.bottom - this._chart.chartArea.top) * diffP;
+        // difference between min/max value of data point and axis
+        var diff_min_point_axis = (this._chart.data.datasets[0]._dictData.rangeY.min - this._chart.scales["y-axis-0"].min) 
+                                                / (this._chart.scales["y-axis-0"].max - this._chart.scales["y-axis-0"].min);
+        var diff_min_point_axis_pixel = (this._chart.chartArea.bottom - this._chart.chartArea.top) * diff_min_point_axis;
 
-        var diffP2 = (this._chart.data.datasets[0]._dictData.rangeY.max - this._chart.scales["y-axis-0"].min) / (this._chart.scales["y-axis-0"].max - this._chart.scales["y-axis-0"].min);
-        var diff2 = (this._chart.chartArea.bottom - this._chart.chartArea.top) * (1 - diffP2);
+        var diff_max_point_axis = (this._chart.data.datasets[0]._dictData.rangeY.max - this._chart.scales["y-axis-0"].min) 
+                                                    / (this._chart.scales["y-axis-0"].max - this._chart.scales["y-axis-0"].min);
+        var diff_max_point_axis_pixel = (this._chart.chartArea.bottom - this._chart.chartArea.top) * (1 - diff_max_point_axis);
 
-        var x = e.offsetX - this._chart.chartArea.left;
-        var y = e.offsetY - this._chart.chartArea.top - diff2;   //((this._chart.chartArea.bottom - this._chart.chartArea.top) - (e.offsetY - this._chart.chartArea.top));
+        // x,y position on canvas
+        var x = point.x - this._chart.chartArea.left;
+        var y = point.y - this._chart.chartArea.top - diff_max_point_axis_pixel;
 
+        // x,y position in percent
         var percX  = x / (this._chart.chartArea.right - this._chart.chartArea.left);
-        var percY = y / (this._chart.chartArea.bottom - this._chart.chartArea.top -  diff2 - diff);
-
+        var percY = y / (this._chart.chartArea.bottom - this._chart.chartArea.top - diff_max_point_axis_pixel - diff_min_point_axis_pixel);
         var newX = width * percX;
         var newY = height - (height * percY);
 
-        var pt1 = this._getNeighbours(newX);
-        var pt2 = this._getNeighbours(newY);
+        // consider offset for each point
+        var xRange = this._getRange(newX, 3);
+        var yRange = this._getRange(newY, 3);
 
-        for (var i = pt1.min; i <= pt1.max; i++) {
-            for (var k = pt2.min; k <= pt2.max; k++) {
+        for (var i = xRange.min; i <= xRange.max; i++) {
+            for (var k = yRange.min; k <= yRange.max; k++) {
                 var pt = this._chart.data.datasets[0]._dictData.get(i, k);
                 if (pt != undefined)
                     console.log(pt);
             }
         }
-
-        
-
-        //area.left, area.top, area.right - area.left, area.bottom - area.top    
-
-
-        /*var diff = this._pointDiff(this._position, mousePosition);
-        var pt = this._chart.data.datasets[0]._dictData.get(e.offsetX, e.offsetY);
-        if (pt != undefined)
-            openTip(this._chart, pt);*/
-        /*if (diff > 10) {
-            this._chart.options.events = [] 
-            this._chart.render({duration: 2, lazy: true});
-            this._timer=setTimeout(this._mouseStoppedMoving.bind(this), 10);
-        }
-        this._position = mousePosition;*/
     }
+
 
     _mouseStoppedMoving() {
         this._chart.options.events = this._events;
         openTip(this._chart, 0, 0);
         this._chart.render({duration: 2, lazy: true});  
-    }
-
-    _pointDiff(pt1, pt2) {
-        return Math.sqrt(Math.pow(pt1.x - pt2.x, 2) + Math.pow(pt1.y - pt2.y, 2));
     }
 }
 
