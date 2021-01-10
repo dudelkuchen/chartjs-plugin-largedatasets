@@ -61,24 +61,25 @@ class DataGrouping {
 
 class PointDoubleValueDictionary {
     constructor() {
-        this._innerDictionary = {};
+        this._innerDictionary = new Map();
         this.rangeX = {min: 0, max: 0}
         this.rangeY = {min: 0, max: 0}
     }
 
     add(key1, key2, data, index) {
-        if (!this._innerDictionary.hasOwnProperty(key1))
-            this._innerDictionary[key1] = {};
-        this._innerDictionary[key1][key2] = {data, index};
+        if (!this._innerDictionary.has(key1))
+            this._innerDictionary.set(key1, new Map());
+        this._innerDictionary.get(key1).set(key2,  {data, index});
     }
 
     getDictionaryValues() {
         var groupedData = [];
         var counter = 0;
-        for (var xValue in this._innerDictionary) {
-            for (var yValue in this._innerDictionary[xValue]) {
-                var value = this._innerDictionary[xValue][yValue];
-                groupedData.push(value)
+        let entries = this._innerDictionary.entries();
+        for (let [key, map] of entries) {
+            let innerEntries = map.entries()
+            for (let [key2, value] of innerEntries) {
+                groupedData.push(value);
             }
         }
 
@@ -87,9 +88,9 @@ class PointDoubleValueDictionary {
     }
 
     get(key1, key2) {
-        var data = this._innerDictionary[key1];
+        var data = this._innerDictionary.get(key1);
         if (data != undefined)
-            var data2 = data[key2];
+            var data2 = data.get(key2);
             if (data2 != undefined)
                 return data2;
         return undefined;
@@ -168,8 +169,8 @@ class ChartTooltipHandler {
         var newY = height - (height * percY);
 
         // consider offset for each point
-        var xRange = this._getRange(newX, 4);
-        var yRange = this._getRange(newY, 4);
+        var xRange = this._getRange(newX, 3);
+        var yRange = this._getRange(newY, 3);
 
         var points = [];
         for (var i = xRange.min; i <= xRange.max; i++) {
@@ -190,7 +191,7 @@ class ChartTooltipHandler {
         
         this._chart.tooltip._active = tooltipPoints;
         this._chart.tooltip.update(true);
-        this._chart.render({duration: 2, lazy: true});  
+        this._chart.render({duration: 2, lazy: false});  
     }
 }
 
@@ -241,7 +242,11 @@ var largeDatasetsPlugin = {
                 return;
             var pixelSize = this._getOption(chart, "groupSize");
             var dataGrouping = new DataGrouping({width: canvasSize.width, height: canvasSize.height}, pixelSize);
+            console.log("Time Filtering")
+            var t0 = performance.now()
             var dict = dataGrouping.groupData(dataset.data);
+            var t1 = performance.now()
+            console.log("Filtered in  " + (t1 - t0) + " milliseconds.")
             dataset.data = dict.getDictionaryValues();
             dataset["_dictData"] = dict;
         }.bind(this));
