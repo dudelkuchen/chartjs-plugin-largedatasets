@@ -74,11 +74,16 @@ class PointDoubleValueDictionary {
 
     getDictionaryValues() {
         var groupedData = [];
+        var counter = 0;
         for (var xValue in this._innerDictionary) {
-            for (var yValue in this._innerDictionary[xValue])
-                groupedData.push(this._innerDictionary[xValue][yValue])
+            for (var yValue in this._innerDictionary[xValue]) {
+                var value = this._innerDictionary[xValue][yValue];
+                groupedData.push(value)
+            }
         }
-        return groupedData.sort((a, b) => (a.index > b.index) ? 1 : -1).map((d) => d.data);
+
+        var counter = 0;
+        return groupedData.sort((a, b) => (a.index > b.index) ? 1 : -1).map((d) => { d["index"] = counter++; return d.data});
     }
 
     get(key1, key2) {
@@ -86,7 +91,7 @@ class PointDoubleValueDictionary {
         if (data != undefined)
             var data2 = data[key2];
             if (data2 != undefined)
-                return data2.data;
+                return data2;
         return undefined;
     }
 }
@@ -117,7 +122,6 @@ class CanvasSizeTracker  {
 class ChartTooltipHandler {
     constructor() {
         this._chart = undefined
-        this._timer = undefined
         this._canvas = undefined
         this._position = {x: -1, y: -1}
         this._myMouseMove = this._mouseMove.bind(this)
@@ -126,15 +130,9 @@ class ChartTooltipHandler {
 
     trackChart(chart) {
         this._chart = chart;
-        this._events = this._chart.options.events;
+        this._chart.options.events = [];
         this._canvas = chart.canvas;
         this._canvas.addEventListener('click', this._myMouseMove)
-    }
-
-    untrackChart() {
-        this._canvas.removeEventListener('mousemove', this._myMouseMove);
-        this._canvas = undefined;
-        this._chart = undefined;
     }
 
     _getRange(number, offset) {
@@ -142,7 +140,6 @@ class ChartTooltipHandler {
     }
 
     _mouseMove(e) {
-        clearTimeout(this._timer);
         var mousePosition = {x: e.offsetX, y: e.offsetY};
         this._findPointInArea(mousePosition)
     }
@@ -171,22 +168,28 @@ class ChartTooltipHandler {
         var newY = height - (height * percY);
 
         // consider offset for each point
-        var xRange = this._getRange(newX, 3);
-        var yRange = this._getRange(newY, 3);
+        var xRange = this._getRange(newX, 4);
+        var yRange = this._getRange(newY, 4);
 
+        var points = [];
         for (var i = xRange.min; i <= xRange.max; i++) {
             for (var k = yRange.min; k <= yRange.max; k++) {
                 var pt = this._chart.data.datasets[0]._dictData.get(i, k);
-                if (pt != undefined)
-                    console.log(pt);
+                if (pt != undefined) {
+                    points.push(pt);
+                }
             }
         }
-    }
 
+        var data = this._chart.getDatasetMeta(0);  
+        this._chart.tooltip.initialize();
 
-    _mouseStoppedMoving() {
-        this._chart.options.events = this._events;
-        openTip(this._chart, 0, 0);
+        var tooltipPoints = [];
+        for (let i = 0; i < Math.min(points.length, 5); i++)
+            tooltipPoints.push(data.data[points[i].index]);
+        
+        this._chart.tooltip._active = tooltipPoints;
+        this._chart.tooltip.update(true);
         this._chart.render({duration: 2, lazy: true});  
     }
 }
@@ -214,10 +217,13 @@ var largeDatasetsPlugin = {
     _chartTooltipTracker: new ChartTracker(),
     _dataCache: [],
 
-    afterInit: function(chart) {
-        this._canvasSizeTracker.update(chart);
+    beforeInit: function(chart) {
         if (this._getOption(chart, 'tooltipOptimization'))
             this._chartTooltipTracker.addChart(chart)
+    },
+
+    afterInit: function(chart) {
+        this._canvasSizeTracker.update(chart);
         this._updateFunction(chart);
     },
 
