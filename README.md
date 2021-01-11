@@ -5,6 +5,16 @@
 
 Requires [Chart.js](https://github.com/chartjs/Chart.js/releases) **2.8.0** or later.
 
+## Supported Chart types
+The following chart types are supported:
+
+*line
+*bar
+*bubble
+*scatter
+
+For bubble and scatter Chart, the plugin needs to be further optimised. The optimisation is not as strong as for line or bar charts. 
+
 ## Example
 
 ```javascript
