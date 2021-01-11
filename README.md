@@ -29,6 +29,7 @@ new Chart(ctx, {
 | [`groupingSize`](#color) | `Number` | `1`
 | [`caculateForCanvasSize`](#color) | `{width: x, height: y}` | `false`
 | [`recalculationMode`](#color) | `[resize, increase, decrease, none]` | `none`
+| [`tooltipOptimization`](#color) | `Boolean`  | `true`
 
 
 #### `groupingSize`
@@ -46,6 +47,9 @@ Indicates for which resize event the data point resolution should be recalculate
 * `resize`: Recalculation for every resize event.
 
 When setting the `recalculationMode` to `increase` or `resize` the algorithm uses the original data to calculate the resolution. So the original data will be cached which takes much longer calculation time and memory. Don't use this mode with extremly big data.
+
+#### `tooltipOptimization`
+optimizes the rendering of tooltips. Tooltips are only rendered with a mouse click and no animations are used. 
 
 ## Development
 
