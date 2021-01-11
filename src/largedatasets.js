@@ -12,18 +12,17 @@ class DataGrouping {
     constructor(area, pixelSize) {
         this.area = area;
         this.pixelSize = pixelSize;
+        this._minMaxX = { min: 0, max: Number.MAX_VALUE};
+        this._minMaxY = { min: 0, max: Number.MAX_VALUE};
     }
 
     groupData(data) {
         var dictionary = new PointDoubleValueDictionary();
-        var minMax = this.getMinMaxFromData(data)
-        var minMaxX = minMax.minMaxX;
-        var minMaxY = minMax.minMaxY;
-        dictionary.rangeX = minMaxX;
-        dictionary.rangeY = minMaxY;
+        dictionary.rangeX = this._minMaxX ;
+        dictionary.rangeY = this._minMaxY;
         for (let i = data.length - 1; i >= 0; i--) {
-            var x = this.getPixelPositionWidth(data[i].x, minMaxX.min, minMaxX.max);
-            var y = this.getPixelPositionHeight(data[i].y, minMaxY.min, minMaxY.max);
+            var x = this.getPixelPositionWidth(data[i].x, this._minMaxX.min, this._minMaxX.max);
+            var y = this.getPixelPositionHeight(data[i].y, this._minMaxY.min, this._minMaxY.max);
             dictionary.add(x,y, data[i], i);
         }
         return dictionary;
@@ -41,21 +40,24 @@ class DataGrouping {
         return Math.floor(this.getPointPercentage(value, min, max) * this.area.height / this.pixelSize);
     }
 
-    getMinMaxFromData(data) {
-        var minMaxX = {min: data[0].x, max: data[0].x };
-        var minMaxY = {min: data[0].y, max: data[0].y }
-        for (let i = 1; i < data.length; i++) {
-            if (minMaxX.min > data[i].x)
-                minMaxX.min = data[i].x;
-            else if (minMaxX.max < data[i].x)
-                minMaxX.max = data[i].x;
-            
-            if (minMaxY.min > data[i].y)
-                minMaxY.min = data[i].y;
-            else if (minMaxY.max < data[i].y)
-                minMaxY.max = data[i].y;
+    getMinMaxFromData(datasets) {
+        this._minMaxX = {min: datasets[0].data[0].x, max: datasets[0].data[0].x };
+        this._minMaxY = {min: datasets[0].data[0].y, max: datasets[0].data[0].y };
+
+        for (let k = 0; k < datasets.length; k++) {
+            let data = datasets[k].data;
+            for (let i = 1; i < data.length; i++) {
+                if (this._minMaxX.min > data[i].x)
+                    this._minMaxX.min = data[i].x;
+                else if (this._minMaxX.max < data[i].x)
+                    this._minMaxX.max = data[i].x;
+                
+                if (this._minMaxY.min > data[i].y)
+                    this._minMaxY.min = data[i].y;
+                else if (this._minMaxY.max < data[i].y)
+                    this._minMaxY.max = data[i].y;
+            }
         }
-        return {minMaxY, minMaxX};
     }
 }
 
@@ -145,49 +147,6 @@ class ChartTooltipHandler {
     }
 
     _findPointInArea(point) {
-        var width = this._chart.canvas.width;
-        var height = this._chart.canvas.height;
-
-        // difference between min/max value of data point and axis
-        var diff_min_point_axis = (this._chart.data.datasets[0]._dictData.rangeY.min - this._chart.scales["y-axis-0"].min) 
-                                                / (this._chart.scales["y-axis-0"].max - this._chart.scales["y-axis-0"].min);
-        var diff_min_point_axis_pixel = (this._chart.chartArea.bottom - this._chart.chartArea.top) * diff_min_point_axis;
-
-        var diff_max_point_axis = (this._chart.data.datasets[0]._dictData.rangeY.max - this._chart.scales["y-axis-0"].min) 
-                                                    / (this._chart.scales["y-axis-0"].max - this._chart.scales["y-axis-0"].min);
-        var diff_max_point_axis_pixel = (this._chart.chartArea.bottom - this._chart.chartArea.top) * (1 - diff_max_point_axis);
-
-        // x,y position on canvas
-        var x = point.x - this._chart.chartArea.left;
-        var y = point.y - this._chart.chartArea.top - diff_max_point_axis_pixel;
-
-        // x,y position in percent
-        var percX  = x / (this._chart.chartArea.right - this._chart.chartArea.left);
-        var percY = y / (this._chart.chartArea.bottom - this._chart.chartArea.top - diff_max_point_axis_pixel - diff_min_point_axis_pixel);
-        var newX = width * percX;
-        var newY = height - (height * percY);
-
-        // consider offset for each point
-        var xRange = this._getRange(newX, 2);
-        var yRange = this._getRange(newY, 2);
-
-        var points = [];
-        for (var i = xRange.min; i <= xRange.max; i++) {
-            for (var k = yRange.min; k <= yRange.max; k++) {
-                var pt = this._chart.data.datasets[0]._dictData.get(i, k);
-                if (pt != undefined) {
-                    points.push(pt);
-                }
-            }
-        }
-
-        var data = this._chart.getDatasetMeta(0);  
-
-        var tooltipPoints = [];
-        for (let i = 0; i < Math.min(points.length, 5); i++)
-            tooltipPoints.push(data.data[points[i].index]);
-        
-        this._chart.tooltip._active = tooltipPoints; 
         this._chart.tooltip.update(true);
         this._chart.render({duration: 2, lazy: false}); 
     }
@@ -195,7 +154,7 @@ class ChartTooltipHandler {
 
 class ChartTracker {
     constructor() {
-        this._charts = {}
+        this._charts = new Map()
     }
 
     addChart(chart) {
@@ -205,7 +164,8 @@ class ChartTracker {
     }
 
     removeChart(chart) {
-        this._charts[chart.id].untrackChart()
+        if (this._charts.has(chart.id))
+            this._charts[chart.id].untrackChart();
     }
 }
 
@@ -235,16 +195,15 @@ var largeDatasetsPlugin = {
             for (let i = 0; i < this._dataCache.length; i++)
                 datasets[i].data = this._dataCache[i].data;
         }
+
+        var pixelSize = this._getOption(chart, "groupSize");
+        var dataGrouping = new DataGrouping({width: canvasSize.width, height: canvasSize.height}, pixelSize);
+        dataGrouping.getMinMaxFromData(datasets);
+
         datasets.forEach(function(dataset) {
             if (dataset.data.length === 0)
                 return;
-            var pixelSize = this._getOption(chart, "groupSize");
-            var dataGrouping = new DataGrouping({width: canvasSize.width, height: canvasSize.height}, pixelSize);
-            console.log("Time Filtering")
-            var t0 = performance.now()
             var dict = dataGrouping.groupData(dataset.data);
-            var t1 = performance.now()
-            console.log("Filtered in  " + (t1 - t0) + " milliseconds.")
             dataset.data = dict.getDictionaryValues();
             dataset["_dictData"] = dict;
         }.bind(this));
