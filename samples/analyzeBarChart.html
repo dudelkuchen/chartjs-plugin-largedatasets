@@ -1,0 +1,222 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Chartjs-plugin-largedatasets plugin example</title>
+  <script src="https://cdn.jsdelivr.net/npm/moment@2.24.0/min/moment.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4"></script>
+  <script src="../dist/chartjs-plugin-largedatasets.js"></script>
+  <style>
+        canvas {
+			-moz-user-select: none;
+			-webkit-user-select: none;
+			-ms-user-select: none;
+		}
+		.chart {
+			margin: auto;
+			width: 75%;
+		}
+		.text-center {
+			text-align: center;
+		}
+        .control {
+			width: 400px;
+		}
+		.label {
+			display: inline-block;
+			text-align: right;
+			width: 200px;
+		}
+		.value {
+			display: inline-block;
+			text-align: left;
+			width: 100px;
+		}
+  </style>
+</head>
+<body>
+  <div class="chart">
+    <canvas id="myChart"></canvas>
+  </div>
+  <div class="chart">
+      <canvas id="myChart2"></canvas>
+  </div>
+  <div>
+    <h3 class="text-center">Chart properties</h3>
+    <div class="text-center">
+        <span class="label">Number datapoints:</span>
+        <span id="numberDatapointsLabel" class="value">100000</span>
+        <span><input type="range" min="2500" max="10000000" step="2500" value="100000" id="numberDatapoints" class="control"></span>
+    </div>
+    <h3 class="text-center">Configuration</h3>
+    <div class="text-center"> 
+        <span class="label">Groupsize in pixel:</span>
+        <span id="groupSizeLabel" class="value">1</span>
+        <span><input type="range" min="1" max="50" step="1" value="1" id="groupSize" class="control"></span>
+    </div>
+    <div class="text-center">
+        <button id="normalChart">Create normal chart</button>
+        <button id="reducedChart">Create reduced chart</button>
+        <button id="bothCharts">Compare both charts</button>
+    </div>
+  </div>
+  <script>
+        var isIE = navigator.userAgent.indexOf('MSIE') !== -1 || navigator.userAgent.indexOf('Trident') !== -1;
+        var chartColors = {
+			red: 'rgb(255, 99, 132)',
+			orange: 'rgb(255, 159, 64)',
+			yellow: 'rgb(255, 205, 86)',
+			green: 'rgb(75, 192, 192)',
+			blue: 'rgb(54, 162, 235)',
+			purple: 'rgb(153, 102, 255)',
+			grey: 'rgb(201, 203, 207)'
+        };
+        
+        window.myChart = undefined;
+        window.myChart2 = undefined;
+
+        function createStandardConfig(pluginPart) {
+            return config = {
+                type: 'bar',
+                data: {
+                    datasets: [{
+                        label: 'Dataset 1 (linear interpolation)',
+                        backgroundColor: chartColors.blue,
+                        borderColor: chartColors.blue,
+                        fill: false,
+                        lineTension: 0,
+                        barPercentage: 0.1,
+                        barThickness: 1,
+                        data: [],
+                        cubicInterpolationMode: 'default'
+                    }]
+                },
+                options: {
+                    animation: {
+                        duration: 0
+                    },
+                    plugins: {
+                        largeDatasets: pluginPart,
+                    },
+                    title: {
+                        display: true,
+                        text: 'Big dataset with largedataset plug in'
+                    },
+                    scales: {
+                        xAxes: [{
+                            type: "time",
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'value'
+                            }
+                        }],
+                        yAxes: [{
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'value'
+                            }
+                        }]
+                    },
+                    tooltips: {
+                        mode: 'nearest',
+      				    intersect: false
+                    },
+                    hover: {
+                        mode: 'nearest',
+                        intersect: false
+                    }
+                }
+            };
+        }
+
+        function randomValueBetweent(min, max) {
+            return Math.floor(Math.random() * (max - (min) + 1)) + (min);
+        }
+
+        function createChart(pluginConfig, canvasID, pluginConfig2, canvasID2) {
+            if (window.myChart)
+                window.myChart.destroy();
+            if (window.myChart2)
+                window.myChart2.destroy();
+            
+            var numberDatapoints = document.getElementById('numberDatapoints').value;
+            var config = createStandardConfig(pluginConfig);
+            var time = Date.now();
+			var data = 5;
+            for (var i = 0; i < numberDatapoints; i++) {
+                time += 5000;
+                data += Math.floor(Math.random() * (100 - (-100) + 1)) + (-100);
+				config.data.datasets[0].data.push({
+						x: time,
+						y: data
+					});
+            }
+
+            if (pluginConfig2 != undefined) {
+                var config2= JSON.parse(JSON.stringify(config));
+			    config2.options["plugins"]["largeDatasets"] = pluginConfig2;
+            }
+
+            var ctx = document.getElementById(canvasID).getContext('2d');
+
+            console.log("Creating chart with largedatasets plugin")
+            var t0 = performance.now()
+            window.myChart = new Chart(ctx, config);
+            var t1 = performance.now()
+            console.log("Created chart with largedatasets plugin in  " + (t1 - t0) + " milliseconds.")
+
+
+            if (pluginConfig2 == undefined)
+                return;
+
+            setTimeout(function (){
+                var ctx2 = document.getElementById(canvasID2).getContext('2d');
+                config2.options.title.text = 'Big dataset without largedataset plug in'
+
+                console.log("Creating chart without largedatasets plugin")
+                var t0 = performance.now()
+                window.myChart2 = new Chart(ctx2, config2);
+                var t1 = performance.now()
+                console.log("Created chart without largedatasets plugin in  " + (t1 - t0) + " milliseconds.")
+            }, 1000)
+
+            
+        }
+
+        window.onload = function() {
+            document.getElementById('numberDatapoints').addEventListener(isIE ? 'change' : 'input', function() {
+                if (this.value > 400000) {
+                    document.getElementById('normalChart').disabled = true;
+                    document.getElementById('bothCharts').disabled = true
+                } else  {
+                    document.getElementById('normalChart').disabled = false;
+                    document.getElementById('bothCharts').disabled = false;
+                }
+                document.getElementById('numberDatapointsLabel').innerHTML = this.value;
+            });
+            document.getElementById('groupSize').addEventListener(isIE ? 'change' : 'input', function() {
+                document.getElementById('groupSizeLabel').innerHTML = this.value;
+            });
+
+            document.getElementById('normalChart').addEventListener('click', function() {
+                var pluginConfig = false;
+                createChart(pluginConfig, 'myChart');
+            });
+            document.getElementById('reducedChart').addEventListener('click', function() {
+                var pluginConfig = {
+                    groupSize: document.getElementById('groupSize').value,
+                    tooltipOptimization: true
+                };
+                createChart(pluginConfig, 'myChart');
+            });
+            document.getElementById('bothCharts').addEventListener('click', function() {
+                var pluginConfig = {
+                    groupSize: document.getElementById('groupSize').value,
+                    tooltipOptimization: true
+                };
+                var pluginConfig2 = false;
+                createChart(pluginConfig, 'myChart', pluginConfig2, 'myChart2');
+            });
+        };
+  </script>
+</body>
+</html>

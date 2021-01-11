@@ -7,7 +7,7 @@ Requires [Chart.js](https://github.com/chartjs/Chart.js/releases) **2.8.0** or l
 
 ## Example
 
-Simpel chartjs-plugin-largedatasets plugin example. HTML page can be executed directly in the browser. There you can configure the number of data points and for how many pixels a data point should be drawn. In addition, a line chart can be created with or without the largedatasets plug in. 
+Simpel chartjs-plugin-largedatasets plugin example. HTML page can be executed directly in the browser. There you can configure the number of data points and for how many pixels a data point should be drawn. In addition, a chart can be created with or without the largedatasets plug in. 
 
 To run the examples first execute the following commands in the project root folder:
 
