@@ -49,7 +49,7 @@ Indicates for which resize event the data point resolution should be recalculate
 When setting the `recalculationMode` to `increase` or `resize` the algorithm uses the original data to calculate the resolution. So the original data will be cached which takes much longer calculation time and memory. Don't use this mode with extremly big data.
 
 #### `tooltipOptimization`
-optimizes the rendering of tooltips. The tooltips animations are now only displayed during short mouse movements, otherwise the tooltip is only displayed as soon as the mouse stops moving. This means that delays no longer occur with very large datasets. 
+optimizes the rendering of tooltips. Tooltips are only rendered with a mouse click and no animations are used. 
 
 ## Development
 
