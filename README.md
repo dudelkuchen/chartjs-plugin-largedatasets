@@ -29,7 +29,7 @@ new Chart(ctx, {
 | [`groupingSize`](#color) | `Number` | `1`
 | [`caculateForCanvasSize`](#color) | `{width: x, height: y}` | `false`
 | [`recalculationMode`](#color) | `[resize, increase, decrease, none]` | `none`
-| [`tooltipOptimization`](#color) | `Boolean`  | `false`
+| [`tooltipOptimization`](#color) | `Boolean`  | `true`
 
 
 #### `groupingSize`

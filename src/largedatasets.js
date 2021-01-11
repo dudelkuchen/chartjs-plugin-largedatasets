@@ -5,7 +5,7 @@ var defaultOptions = {
     groupSize: 1,
     caculateForCanvasSize: false,
     recalculationMode: 'none',
-    tooltipOptimization: false
+    tooltipOptimization: true
 };
 
 class DataGrouping {
@@ -126,12 +126,11 @@ class ChartTooltipHandler {
         this._canvas = undefined
         this._position = {x: -1, y: -1}
         this._myMouseMove = this._mouseMove.bind(this)
-        this._events = []
     }
 
     trackChart(chart) {
         this._chart = chart;
-        this._chart.options.events = [];
+        this._chart.options.events.splice(this._chart.options.events.indexOf('mousemove'), 1); 
         this._canvas = chart.canvas;
         this._canvas.addEventListener('click', this._myMouseMove)
     }
@@ -169,8 +168,8 @@ class ChartTooltipHandler {
         var newY = height - (height * percY);
 
         // consider offset for each point
-        var xRange = this._getRange(newX, 3);
-        var yRange = this._getRange(newY, 3);
+        var xRange = this._getRange(newX, 2);
+        var yRange = this._getRange(newY, 2);
 
         var points = [];
         for (var i = xRange.min; i <= xRange.max; i++) {
@@ -183,15 +182,14 @@ class ChartTooltipHandler {
         }
 
         var data = this._chart.getDatasetMeta(0);  
-        this._chart.tooltip.initialize();
 
         var tooltipPoints = [];
         for (let i = 0; i < Math.min(points.length, 5); i++)
             tooltipPoints.push(data.data[points[i].index]);
         
-        this._chart.tooltip._active = tooltipPoints;
+        this._chart.tooltip._active = tooltipPoints; 
         this._chart.tooltip.update(true);
-        this._chart.render({duration: 2, lazy: false});  
+        this._chart.render({duration: 2, lazy: false}); 
     }
 }
 
